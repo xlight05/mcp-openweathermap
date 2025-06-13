@@ -1,6 +1,6 @@
 {
   "name": "mcp-openweathermap",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "MCP server for OpenWeatherMap API integration",
   "private": false,
   "main": "dist/main.js",
