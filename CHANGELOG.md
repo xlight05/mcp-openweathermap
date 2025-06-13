@@ -1,5 +1,15 @@
 # mcp-openweathermap
 
+## 0.1.2
+
+### Patch Changes
+
+- Improve stdio transport compatibility by reorganizing console logging
+
+  - Move HTTP stream logging inside the conditional block
+  - Remove problematic console.log for stdio transport to prevent interference with MCP protocol communication
+  - Ensure all startup messages use console.error for stderr output when needed
+
 ## 0.1.1
 
 ### Patch Changes
