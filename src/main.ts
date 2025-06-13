@@ -370,6 +370,75 @@ server.addTool({
   }
 });
 
+// Minutely Forecast Tool
+server.addTool({
+  name: "get-minutely-forecast",
+  description: "Get minute-by-minute precipitation forecast for next hour",
+  parameters: getMinutelyForecastSchema,
+  execute: async (args, { session, log }) => {
+    try {
+      log.info("Getting minutely weather forecast", { 
+        location: args.location,
+        limit: args.limit
+      });
+      
+      // Get OpenWeather client
+      const client = getOpenWeatherClient(session as any);
+      
+      // Configure client for this request
+      configureClientForLocation(client, args.location);
+      
+      // Fetch minutely forecast data
+      const requestedMinutes = args.limit || 60;
+      const minutelyData = await client.getMinutelyForecast(requestedMinutes);
+      
+      log.info("Successfully retrieved minutely weather forecast", { 
+        location: args.location,
+        minutes: minutelyData.length
+      });
+      
+      // Format the response
+      const formattedForecast = JSON.stringify({
+        location: args.location,
+        minutes_requested: requestedMinutes,
+        forecast: minutelyData.map((minute, index) => ({
+          minute_offset: index + 1,
+          time: minute.dt.toISOString(),
+          precipitation: minute.weather.rain,
+          precipitation_description: minute.weather.rain > 0 ? 
+            (minute.weather.rain < 0.1 ? 'Light rain' : 
+             minute.weather.rain < 0.5 ? 'Moderate rain' : 'Heavy rain') : 'No precipitation'
+        }))
+      }, null, 2);
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: formattedForecast
+          }
+        ]
+      };
+    } catch (error) {
+      log.error("Failed to get minutely weather forecast", { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      
+      // Provide helpful error messages
+      if (error instanceof Error) {
+        if (error.message.includes('city not found')) {
+          throw new Error(`Location "${args.location}" not found. Please check the spelling or try using coordinates.`);
+        }
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Invalid OpenWeatherMap API key. Please check your configuration.');
+        }
+      }
+      
+      throw new Error(`Failed to get minutely weather forecast: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+});
+
 // OneCall Weather Tool
 server.addTool({
   name: "get-onecall-weather",
