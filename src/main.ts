@@ -700,26 +700,148 @@ server.addTool({
   name: "get-onecall-weather",
   description: "Get comprehensive weather data (current + 7-day forecast)",
   parameters: getOneCallWeatherSchema,
-  execute: async (args, { log }) => {
+  execute: async (args, { session, log }) => {
     try {
       log.info("Getting OneCall weather data", { 
         latitude: args.latitude,
         longitude: args.longitude 
       });
       
-      // TODO: Implement OneCall fetching logic
+      // Get OpenWeather client
+      const client = getOpenWeatherClient(session as any);
+      
+      // Set coordinates for OneCall API
+      client.setLocationByCoordinates(args.latitude, args.longitude);
+      
+      // Set units if provided
+      if (args.units) {
+        client.setUnits(args.units);
+      }
+      
+      // Fetch comprehensive weather data
+      const weatherData = await client.getEverything();
+      
+      log.info("Successfully retrieved OneCall weather data", { 
+        latitude: args.latitude,
+        longitude: args.longitude,
+        has_current: !!weatherData.current,
+        daily_count: weatherData.daily?.length || 0,
+        hourly_count: weatherData.hourly?.length || 0
+      });
+      
+      // Format the comprehensive response
+      const formattedData = {
+        location: {
+          latitude: args.latitude,
+          longitude: args.longitude,
+          timezone: weatherData.timezone,
+          timezone_offset: weatherData.timezoneOffset
+        },
+        current: weatherData.current ? {
+          datetime: weatherData.current.dt.toISOString(),
+          temperature: weatherData.current.weather.temp.cur,
+          feels_like: weatherData.current.weather.feelsLike.cur,
+          pressure: weatherData.current.weather.pressure,
+          humidity: weatherData.current.weather.humidity,
+          dew_point: weatherData.current.weather.dewPoint,
+          uv_index: weatherData.current.weather.uvi,
+          clouds: weatherData.current.weather.clouds,
+          visibility: weatherData.current.weather.visibility,
+          wind: {
+            speed: weatherData.current.weather.wind.speed,
+            direction: weatherData.current.weather.wind.deg,
+            gust: weatherData.current.weather.wind.gust
+          },
+          weather: {
+            main: weatherData.current.weather.main,
+            description: weatherData.current.weather.description,
+            icon: weatherData.current.weather.icon
+          },
+          rain: weatherData.current.weather.rain,
+          snow: weatherData.current.weather.snow
+        } : null,
+        minutely: weatherData.minutely?.slice(0, 60).map((minute, index) => ({
+          minute_offset: index + 1,
+          time: minute.dt.toISOString(),
+          precipitation: minute.weather.rain
+        })) || [],
+        hourly: weatherData.hourly?.slice(0, 48).map(hour => ({
+          datetime: hour.dt.toISOString(),
+          temperature: hour.weather.temp.cur,
+          feels_like: hour.weather.feelsLike.cur,
+          pressure: hour.weather.pressure,
+          humidity: hour.weather.humidity,
+          dew_point: hour.weather.dewPoint,
+          uv_index: hour.weather.uvi,
+          clouds: hour.weather.clouds,
+          visibility: hour.weather.visibility,
+          wind: {
+            speed: hour.weather.wind.speed,
+            direction: hour.weather.wind.deg,
+            gust: hour.weather.wind.gust
+          },
+          weather: {
+            main: hour.weather.main,
+            description: hour.weather.description,
+            icon: hour.weather.icon
+          },
+          precipitation_probability: hour.weather.pop,
+          rain: hour.weather.rain,
+          snow: hour.weather.snow
+        })) || [],
+        daily: weatherData.daily?.slice(0, 7).map(day => ({
+          date: day.dt.toISOString().split('T')[0],
+          temperature: {
+            min: day.weather.temp.min,
+            max: day.weather.temp.max,
+            morning: day.weather.temp.morn,
+            day: day.weather.temp.day,
+            evening: day.weather.temp.eve,
+            night: day.weather.temp.night
+          },
+          feels_like: {
+            morning: day.weather.feelsLike.morn,
+            day: day.weather.feelsLike.day,
+            evening: day.weather.feelsLike.eve,
+            night: day.weather.feelsLike.night
+          },
+          pressure: day.weather.pressure,
+          humidity: day.weather.humidity,
+          dew_point: day.weather.dewPoint,
+          wind: {
+            speed: day.weather.wind.speed,
+            direction: day.weather.wind.deg,
+            gust: day.weather.wind.gust
+          },
+          weather: {
+            main: day.weather.main,
+            description: day.weather.description,
+            icon: day.weather.icon
+          },
+          clouds: day.weather.clouds,
+          precipitation_probability: day.weather.pop,
+          rain: day.weather.rain,
+          snow: day.weather.snow,
+          uv_index: day.weather.uvi,
+          moon_phase: day.astronomical.moonPhase,
+          sunrise: day.astronomical.sunrise.toISOString(),
+          sunset: day.astronomical.sunset.toISOString()
+        })) || [],
+        alerts: weatherData.alerts?.map(alert => ({
+          sender: alert.sender_name,
+          event: alert.event,
+          start_time: new Date(alert.start * 1000).toISOString(),
+          end_time: new Date(alert.end * 1000).toISOString(),
+          description: alert.description,
+          tags: alert.tags
+        })) || []
+      };
       
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify({ 
-              message: "OneCall weather tool not yet implemented",
-              latitude: args.latitude,
-              longitude: args.longitude,
-              units: args.units,
-              exclude: args.exclude
-            }, null, 2)
+            text: JSON.stringify(formattedData, null, 2)
           }
         ]
       };
@@ -727,6 +849,17 @@ server.addTool({
       log.error("Failed to get OneCall weather", { 
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
+      
+      // Provide helpful error messages
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid coordinates')) {
+          throw new Error(`Invalid coordinates: latitude must be between -90 and 90, longitude must be between -180 and 180.`);
+        }
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Invalid OpenWeatherMap API key. Please check your configuration.');
+        }
+      }
+      
       throw new Error(`Failed to get OneCall weather: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
