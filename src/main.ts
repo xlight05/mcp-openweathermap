@@ -439,6 +439,75 @@ server.addTool({
   }
 });
 
+// Weather Alerts Tool
+server.addTool({
+  name: "get-weather-alerts",
+  description: "Get active weather alerts and warnings",
+  parameters: getWeatherAlertsSchema,
+  execute: async (args, { session, log }) => {
+    try {
+      log.info("Getting weather alerts", { 
+        location: args.location
+      });
+      
+      // Get OpenWeather client
+      const client = getOpenWeatherClient(session as any);
+      
+      // Configure client for this request
+      configureClientForLocation(client, args.location);
+      
+      // Fetch alerts data
+      const alertsData = await client.getAlerts();
+      
+      log.info("Successfully retrieved weather alerts", { 
+        location: args.location,
+        alerts_count: alertsData.length
+      });
+      
+      // Format the response
+      const formattedAlerts = JSON.stringify({
+        location: args.location,
+        alerts_count: alertsData.length,
+        alerts: alertsData.map(alert => ({
+          sender: alert.sender_name,
+          event: alert.event,
+          start_time: new Date(alert.start * 1000).toISOString(),
+          end_time: new Date(alert.end * 1000).toISOString(),
+          description: alert.description,
+          tags: alert.tags,
+          severity: alert.tags.includes('severe') || alert.tags.includes('extreme') ? 'High' : 
+                   alert.tags.includes('moderate') ? 'Medium' : 'Low'
+        }))
+      }, null, 2);
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: formattedAlerts
+          }
+        ]
+      };
+    } catch (error) {
+      log.error("Failed to get weather alerts", { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      
+      // Provide helpful error messages
+      if (error instanceof Error) {
+        if (error.message.includes('city not found')) {
+          throw new Error(`Location "${args.location}" not found. Please check the spelling or try using coordinates.`);
+        }
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Invalid OpenWeatherMap API key. Please check your configuration.');
+        }
+      }
+      
+      throw new Error(`Failed to get weather alerts: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+});
+
 // OneCall Weather Tool
 server.addTool({
   name: "get-onecall-weather",
