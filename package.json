@@ -2,6 +2,7 @@
   "name": "mcp-openweathermap",
   "version": "0.1.0",
   "description": "MCP server for OpenWeatherMap API integration",
+  "type": "module",
   "private": false,
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
@@ -36,8 +37,7 @@
     "mcp",
     "openweathermap",
     "weather",
-    "api",
-    "claude"
+    "api"
   ],
   "author": "Robert Niimi <robertn702@gmail.com>",
   "license": "MIT",
