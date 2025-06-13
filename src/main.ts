@@ -618,6 +618,77 @@ server.addTool({
   }
 });
 
+// Location Info Tool (Reverse Geocoding)
+server.addTool({
+  name: "get-location-info",
+  description: "Get location information from coordinates (reverse geocoding)",
+  parameters: getLocationInfoSchema,
+  execute: async (args, { session, log }) => {
+    try {
+      log.info("Getting location info", { 
+        latitude: args.latitude,
+        longitude: args.longitude
+      });
+      
+      // Get OpenWeather client
+      const client = getOpenWeatherClient(session as any);
+      
+      // Set coordinates directly for reverse geocoding
+      client.setLocationByCoordinates(args.latitude, args.longitude);
+      
+      // Fetch location data using reverse geocoding
+      const locationData = await client.getLocation();
+      
+      log.info("Successfully retrieved location info", { 
+        latitude: args.latitude,
+        longitude: args.longitude,
+        location_name: locationData?.name
+      });
+      
+      // Format the response
+      const formattedLocation = JSON.stringify({
+        coordinates: {
+          latitude: args.latitude,
+          longitude: args.longitude
+        },
+        location: locationData ? {
+          name: locationData.name,
+          country: locationData.country,
+          state: locationData.state,
+          local_names: locationData.local_names
+        } : {
+          message: "No location data found for these coordinates"
+        }
+      }, null, 2);
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: formattedLocation
+          }
+        ]
+      };
+    } catch (error) {
+      log.error("Failed to get location info", { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      
+      // Provide helpful error messages
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid coordinates')) {
+          throw new Error(`Invalid coordinates: latitude must be between -90 and 90, longitude must be between -180 and 180.`);
+        }
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Invalid OpenWeatherMap API key. Please check your configuration.');
+        }
+      }
+      
+      throw new Error(`Failed to get location info: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+});
+
 // OneCall Weather Tool
 server.addTool({
   name: "get-onecall-weather",
