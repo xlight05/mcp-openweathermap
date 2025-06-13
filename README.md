@@ -142,15 +142,6 @@ bun run build
 
 **HTTP Transport:** The OpenWeatherMap API key is passed as a bearer token in the HTTP request headers. No environment variable needed.
 
-## Error Handling
-
-The server provides detailed error messages for common issues:
-- Invalid or missing API key
-- Location not found
-- Rate limiting
-- Network connectivity issues
-- Invalid coordinates or parameters
-
 ## Contributing
 
 1. Fork the repository
@@ -166,5 +157,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 - [OpenWeatherMap API Documentation](https://openweathermap.org/api)
+- [openweather-api-node Library](https://github.com/loloToster/openweather-api-node) - The underlying API client
 - [Model Context Protocol Documentation](https://modelcontextprotocol.io)
-- [Issue Tracker](https://github.com/your-username/mcp-openweathermap/issues)
+- [Issue Tracker](https://github.com/robertn702/mcp-openweathermap/issues)
