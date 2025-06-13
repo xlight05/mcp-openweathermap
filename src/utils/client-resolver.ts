@@ -9,10 +9,10 @@ const clientCache = new Map<string, OpenWeatherAPI>();
 
 /**
  * Get or create an OpenWeatherAPI client for the given session
- * @param session - Session data from HTTP auth, or null for stdio
+ * @param session - Session data from HTTP auth, or null/undefined for stdio
  * @returns Configured OpenWeatherAPI client
  */
-export function getOpenWeatherClient(session: SessionData | null): OpenWeatherAPI {
+export function getOpenWeatherClient(session: SessionData | null | undefined): OpenWeatherAPI {
   // For stdio transport, use the global session
   const effectiveSession = session || getStdioSession();
 

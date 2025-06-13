@@ -62,7 +62,7 @@ server.addTool({
       log.info("Getting current weather", { location: args.location });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
+      const client = getOpenWeatherClient(session as SessionData | undefined);
       
       // Configure client for this request
       configureClientForLocation(client, args.location, args.units);
@@ -137,7 +137,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
+      const client = getOpenWeatherClient(session as SessionData | undefined);
       
       // Configure client for this request
       configureClientForLocation(client, args.location, args.units);
@@ -225,7 +225,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
+      const client = getOpenWeatherClient(session as SessionData | undefined);
       
       // Configure client for this request
       configureClientForLocation(client, args.location, args.units);
@@ -288,7 +288,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
+      const client = getOpenWeatherClient(session as SessionData | undefined);
       
       // Configure client for this request
       configureClientForLocation(client, args.location, args.units);
@@ -390,7 +390,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
+      const client = getOpenWeatherClient(session as SessionData | undefined);
       
       // Configure client for this request
       configureClientForLocation(client, args.location);
@@ -458,7 +458,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
+      const client = getOpenWeatherClient(session as SessionData | undefined);
       
       // Configure client for this request
       configureClientForLocation(client, args.location);
@@ -527,7 +527,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
+      const client = getOpenWeatherClient(session as SessionData | undefined);
       
       // Configure client for this request
       configureClientForLocation(client, args.location);
@@ -638,7 +638,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
+      const client = getOpenWeatherClient(session as SessionData | undefined);
       
       // Set coordinates directly for reverse geocoding
       client.setLocationByCoordinates(args.latitude, args.longitude);
@@ -709,7 +709,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
+      const client = getOpenWeatherClient(session as SessionData | undefined);
       
       // Set coordinates for OneCall API
       client.setLocationByCoordinates(args.latitude, args.longitude);
@@ -879,7 +879,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
+      const client = getOpenWeatherClient(session as SessionData | undefined);
       
       // Set coordinates for air pollution API
       client.setLocationByCoordinates(args.latitude, args.longitude);
@@ -1006,7 +1006,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
+      const client = getOpenWeatherClient(session as SessionData | undefined);
       
       // Set location by the query (could be city name, zip code, etc.)
       client.setLocationByName(args.query);
