@@ -72,8 +72,8 @@ Add this configuration to your Claude Desktop MCP settings:
 {
   "mcpServers": {
     "openweathermap": {
-      "command": "bun",
-      "args": ["run", "/path/to/mcp-openweathermap/src/main.ts"],
+      "command": "npx",
+      "args": ["mcp-openweathermap"],
       "env": {
         "OPENWEATHER_API_KEY": "your-api-key-here"
       }
@@ -87,8 +87,8 @@ For HTTP transport (API key passed as bearer token):
 {
   "mcpServers": {
     "openweathermap": {
-      "command": "bun", 
-      "args": ["run", "/path/to/mcp-openweathermap/src/main.ts"],
+      "command": "npx", 
+      "args": ["mcp-openweathermap"],
       "env": {
         "MCP_TRANSPORT": "httpStream",
         "PORT": "3000"
