@@ -372,9 +372,8 @@ Authentication happens automatically on server startup. No client-side authentic
 
 ## Environment Setup
 Required environment variables:
-- \`OPENWEATHER_API_KEY\`: OpenWeatherMap API key
-- \`API_KEY\`: MCP server authentication key (for HTTP transport)
-- \`PORT\`: Server port (default: 3000)
+- \`OPENWEATHER_API_KEY\`: OpenWeatherMap API key (used for both API access and HTTP stream authentication)
+- \`PORT\`: Server port (default: 3000, for HTTP transport only)
       `.trim()
     };
   }
@@ -402,7 +401,7 @@ async function startServer() {
     });
     console.log(`OpenWeatherMap MCP Server running on port ${transportConfig.httpStream!.port}`);
     console.log(`HTTP endpoint: ${transportConfig.httpStream!.endpoint}`);
-    console.log("Authentication: HTTP Basic Auth with API key");
+    console.log("Authentication: HTTP Basic Auth with OpenWeatherMap API key");
   } else {
     await server.start({
       transportType: "stdio"
