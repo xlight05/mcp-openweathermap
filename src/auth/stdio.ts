@@ -27,8 +27,6 @@ export async function initializeStdioAuth(): Promise<void> {
     apiKey,
     authenticatedAt: new Date(),
   };
-
-  console.log("OpenWeatherMap authentication initialized successfully");
 }
 
 /**
