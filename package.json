@@ -39,16 +39,16 @@
     "api",
     "claude"
   ],
-  "author": "",
+  "author": "Robert Niimi <robertn702@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/mcp-openweathermap.git"
+    "url": "https://github.com/robertn702/mcp-openweathermap.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/mcp-openweathermap/issues"
+    "url": "https://github.com/robertn702/mcp-openweathermap/issues"
   },
-  "homepage": "https://github.com/yourusername/mcp-openweathermap#readme",
+  "homepage": "https://github.com/robertn702/mcp-openweathermap#readme",
   "publishConfig": {
     "access": "public"
   }
