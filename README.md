@@ -82,22 +82,6 @@ Add this configuration to your Claude Desktop MCP settings:
 }
 ```
 
-For HTTP transport (API key passed as bearer token):
-```json
-{
-  "mcpServers": {
-    "openweathermap": {
-      "command": "npx", 
-      "args": ["mcp-openweathermap"],
-      "env": {
-        "MCP_TRANSPORT": "httpStream",
-        "PORT": "3000"
-      }
-    }
-  }
-}
-```
-
 ## API Tools
 
 ### Weather Information
