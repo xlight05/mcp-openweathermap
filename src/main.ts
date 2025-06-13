@@ -508,6 +508,116 @@ server.addTool({
   }
 });
 
+// Current Air Pollution Tool
+server.addTool({
+  name: "get-current-air-pollution",
+  description: "Get current air quality data",
+  parameters: getCurrentAirPollutionSchema,
+  execute: async (args, { session, log }) => {
+    try {
+      log.info("Getting current air pollution", { 
+        location: args.location
+      });
+      
+      // Get OpenWeather client
+      const client = getOpenWeatherClient(session as any);
+      
+      // Configure client for this request
+      configureClientForLocation(client, args.location);
+      
+      // Fetch current air pollution data
+      const pollutionData = await client.getCurrentAirPollution();
+      
+      log.info("Successfully retrieved current air pollution", { 
+        location: args.location,
+        aqi: pollutionData.aqi
+      });
+      
+      // Format the response
+      const formattedPollution = JSON.stringify({
+        location: args.location,
+        coordinates: {
+          latitude: pollutionData.lat,
+          longitude: pollutionData.lon
+        },
+        air_quality: {
+          index: pollutionData.aqi,
+          description: pollutionData.aqiName,
+          scale: "1 (Good) to 5 (Very Poor)"
+        },
+        pollutants: {
+          carbon_monoxide: {
+            value: pollutionData.components.co,
+            unit: "μg/m³",
+            description: "Carbon monoxide"
+          },
+          nitrogen_monoxide: {
+            value: pollutionData.components.no,
+            unit: "μg/m³",
+            description: "Nitrogen monoxide"
+          },
+          nitrogen_dioxide: {
+            value: pollutionData.components.no2,
+            unit: "μg/m³",
+            description: "Nitrogen dioxide"
+          },
+          ozone: {
+            value: pollutionData.components.o3,
+            unit: "μg/m³",
+            description: "Ozone"
+          },
+          sulphur_dioxide: {
+            value: pollutionData.components.so2,
+            unit: "μg/m³",
+            description: "Sulphur dioxide"
+          },
+          pm2_5: {
+            value: pollutionData.components.pm2_5,
+            unit: "μg/m³",
+            description: "Fine particles matter"
+          },
+          pm10: {
+            value: pollutionData.components.pm10,
+            unit: "μg/m³",
+            description: "Coarse particulate matter"
+          },
+          ammonia: {
+            value: pollutionData.components.nh3,
+            unit: "μg/m³",
+            description: "Ammonia"
+          }
+        },
+        timestamp: pollutionData.dt.toISOString()
+      }, null, 2);
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: formattedPollution
+          }
+        ]
+      };
+    } catch (error) {
+      log.error("Failed to get current air pollution", { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      
+      // Provide helpful error messages
+      if (error instanceof Error) {
+        if (error.message.includes('city not found')) {
+          throw new Error(`Location "${args.location}" not found. Please check the spelling or try using coordinates.`);
+        }
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Invalid OpenWeatherMap API key. Please check your configuration.');
+        }
+      }
+      
+      throw new Error(`Failed to get current air pollution: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+});
+
 // OneCall Weather Tool
 server.addTool({
   name: "get-onecall-weather",
