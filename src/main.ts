@@ -32,6 +32,12 @@ This MCP server provides access to the OpenWeatherMap API for weather data and f
 Available tools:
 - Current weather: get current weather conditions for any location
 - Weather forecast: get weather forecast for up to 5 days
+- Hourly forecast: get hourly weather forecast for up to 48 hours
+- Daily forecast: get daily weather forecast for up to 8 days
+- Minutely forecast: get minute-by-minute precipitation forecast
+- Weather alerts: get active weather alerts and warnings
+- Current air pollution: get current air quality data and pollutant levels
+- Location info: get location information from coordinates (reverse geocoding)
 - OneCall weather: get comprehensive weather data (current + 7-day forecast)
 - Air pollution: get air quality index and pollution data
 - Geocoding: convert location names to coordinates or vice versa
