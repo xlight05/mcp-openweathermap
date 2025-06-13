@@ -1,5 +1,11 @@
 # mcp-openweathermap
 
+## 0.1.1
+
+### Patch Changes
+
+- Convert to ESM modules and update build process for better compatibility
+
 ## 0.1.0
 
 ### Minor Changes
