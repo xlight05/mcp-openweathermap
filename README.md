@@ -1,4 +1,4 @@
-# MCP OpenWeatherMap Server
+# OpenWeatherMap MCP Server
 
 A Model Context Protocol (MCP) server that provides comprehensive weather data and forecasts through the OpenWeatherMap API. This server enables AI assistants to access real-time weather information, forecasts, air quality data, and location services.
 
@@ -44,13 +44,11 @@ cp .env.example .env
 # Edit .env and add your OpenWeatherMap API key
 ```
 
-Required environment variables:
-- `OPENWEATHER_API_KEY` - Your OpenWeatherMap API key
-
-Optional environment variables:
+Environment variables:
+- `OPENWEATHER_API_KEY` - Your OpenWeatherMap API key (required for stdio transport only)
 - `PORT` - Server port for HTTP transport (default: 3000)
 - `MCP_TRANSPORT` - Transport type: `stdio` or `httpStream` (default: stdio)
-- `MCP_ENDPOINT` - HTTP endpoint path (default: /mcp)
+- `MCP_ENDPOINT` - HTTP endpoint path (default: /stream)
 
 ## Usage
 
@@ -84,7 +82,7 @@ Add this configuration to your Claude Desktop MCP settings:
 }
 ```
 
-For HTTP transport:
+For HTTP transport (API key passed as bearer token):
 ```json
 {
   "mcpServers": {
@@ -92,7 +90,6 @@ For HTTP transport:
       "command": "bun", 
       "args": ["run", "/path/to/mcp-openweathermap/src/main.ts"],
       "env": {
-        "OPENWEATHER_API_KEY": "your-api-key-here",
         "MCP_TRANSPORT": "httpStream",
         "PORT": "3000"
       }
@@ -141,7 +138,9 @@ bun run build
 
 ## Authentication
 
-The server uses your OpenWeatherMap API key for authentication. For HTTP transport, the same API key is used for both OpenWeatherMap API access and MCP authentication.
+**Stdio Transport:** Requires `OPENWEATHER_API_KEY` environment variable.
+
+**HTTP Transport:** The OpenWeatherMap API key is passed as a bearer token in the HTTP request headers. No environment variable needed.
 
 ## Error Handling
 
