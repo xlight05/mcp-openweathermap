@@ -870,24 +870,105 @@ server.addTool({
   name: "get-air-pollution",
   description: "Get air quality index and pollution data",
   parameters: getAirPollutionSchema,
-  execute: async (args, { log }) => {
+  execute: async (args, { session, log }) => {
     try {
       log.info("Getting air pollution data", { 
         latitude: args.latitude,
         longitude: args.longitude 
       });
       
-      // TODO: Implement air pollution fetching logic
+      // Get OpenWeather client
+      const client = getOpenWeatherClient(session as any);
+      
+      // Set coordinates for air pollution API
+      client.setLocationByCoordinates(args.latitude, args.longitude);
+      
+      // Fetch forecasted air pollution data (includes current + forecast)
+      const pollutionData = await client.getForecastedAirPollution();
+      
+      log.info("Successfully retrieved air pollution data", { 
+        latitude: args.latitude,
+        longitude: args.longitude,
+        data_points: pollutionData.length
+      });
+      
+      // Format the response with current and forecast data
+      const formattedData = {
+        location: {
+          latitude: args.latitude,
+          longitude: args.longitude
+        },
+        current: pollutionData.length > 0 ? {
+          datetime: pollutionData[0].dt.toISOString(),
+          air_quality_index: pollutionData[0].aqi,
+          air_quality_description: pollutionData[0].aqiName,
+          pollutants: {
+            carbon_monoxide: {
+              value: pollutionData[0].components.co,
+              unit: "μg/m³",
+              description: "Carbon monoxide"
+            },
+            nitrogen_monoxide: {
+              value: pollutionData[0].components.no,
+              unit: "μg/m³",
+              description: "Nitrogen monoxide"
+            },
+            nitrogen_dioxide: {
+              value: pollutionData[0].components.no2,
+              unit: "μg/m³",
+              description: "Nitrogen dioxide"
+            },
+            ozone: {
+              value: pollutionData[0].components.o3,
+              unit: "μg/m³",
+              description: "Ozone"
+            },
+            sulphur_dioxide: {
+              value: pollutionData[0].components.so2,
+              unit: "μg/m³",
+              description: "Sulphur dioxide"
+            },
+            pm2_5: {
+              value: pollutionData[0].components.pm2_5,
+              unit: "μg/m³",
+              description: "Fine particles matter"
+            },
+            pm10: {
+              value: pollutionData[0].components.pm10,
+              unit: "μg/m³",
+              description: "Coarse particulate matter"
+            },
+            ammonia: {
+              value: pollutionData[0].components.nh3,
+              unit: "μg/m³",
+              description: "Ammonia"
+            }
+          }
+        } : null,
+        forecast: pollutionData.slice(1).map(data => ({
+          datetime: data.dt.toISOString(),
+          air_quality_index: data.aqi,
+          air_quality_description: data.aqiName,
+          pollutants: {
+            carbon_monoxide: data.components.co,
+            nitrogen_monoxide: data.components.no,
+            nitrogen_dioxide: data.components.no2,
+            ozone: data.components.o3,
+            sulphur_dioxide: data.components.so2,
+            pm2_5: data.components.pm2_5,
+            pm10: data.components.pm10,
+            ammonia: data.components.nh3
+          }
+        })),
+        air_quality_scale: "1 (Good) to 5 (Very Poor)",
+        units: "μg/m³ (micrograms per cubic meter)"
+      };
       
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify({ 
-              message: "Air pollution tool not yet implemented",
-              latitude: args.latitude,
-              longitude: args.longitude
-            }, null, 2)
+            text: JSON.stringify(formattedData, null, 2)
           }
         ]
       };
@@ -895,6 +976,17 @@ server.addTool({
       log.error("Failed to get air pollution data", { 
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
+      
+      // Provide helpful error messages
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid coordinates')) {
+          throw new Error(`Invalid coordinates: latitude must be between -90 and 90, longitude must be between -180 and 180.`);
+        }
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Invalid OpenWeatherMap API key. Please check your configuration.');
+        }
+      }
+      
       throw new Error(`Failed to get air pollution data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
