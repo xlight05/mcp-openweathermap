@@ -1151,12 +1151,6 @@ Required environment variables:
   }
 });
 
-// Log startup information
-console.log(`Starting OpenWeatherMap MCP Server with transport: ${transportConfig.transportType}`);
-if (transportConfig.transportType === "httpStream") {
-  console.log(`HTTP Stream configuration: port=${transportConfig.httpStream?.port}, endpoint=${transportConfig.httpStream?.endpoint}`);
-}
-
 // Start server with dynamic transport configuration
 async function startServer() {
   // Initialize authentication for stdio
@@ -1165,12 +1159,16 @@ async function startServer() {
   }
 
   if (transportConfig.transportType === "httpStream") {
+    // Log startup information
+    console.log(`HTTP Stream configuration: port=${transportConfig.httpStream?.port}, endpoint=${transportConfig.httpStream?.endpoint}`);
+
     await server.start({
       transportType: "httpStream",
       httpStream: {
         port: transportConfig.httpStream!.port
       }
     });
+
     console.log(`OpenWeatherMap MCP Server running on port ${transportConfig.httpStream!.port}`);
     console.log(`HTTP endpoint: ${transportConfig.httpStream!.endpoint}`);
     console.log("Authentication: HTTP Bearer token with OpenWeatherMap API key");
@@ -1178,7 +1176,6 @@ async function startServer() {
     await server.start({
       transportType: "stdio"
     });
-    console.log("Server started with stdio transport");
   }
 }
 
