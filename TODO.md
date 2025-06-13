@@ -190,7 +190,6 @@ All weather data should be returned in a consistent format with:
 - [x] Implement get-weather-alerts tool (high priority)
 - [x] Implement get-current-air-pollution tool (high priority)
 - [x] Implement get-location-info tool (high priority - reverse geocoding)
-- [ ] Add caching for frequently requested data
 - [ ] Create comprehensive documentation resource
 
 ### Phase 4: Testing & Polish
@@ -208,7 +207,6 @@ All weather data should be returned in a consistent format with:
 
 ## Performance Requirements
 - Response time < 2 seconds for all weather queries
-- Implement caching with 10-minute TTL for same location queries
 - Efficient data trimming to reduce response sizes
 - Support concurrent tool calls
 
