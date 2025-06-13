@@ -3,6 +3,8 @@ import { FastMCP } from "fastmcp";
 import { getTransportConfig } from "./config/transport.js";
 import { httpStreamAuthenticator } from "./auth/http.js";
 import { initializeStdioAuth } from "./auth/stdio.js";
+import { getOpenWeatherClient, configureClientForLocation } from "./utils/client-resolver.js";
+import { formatCurrentWeather, formatWeatherForecast } from "./utils/weather-formatter.js";
 import { 
   getCurrentWeatherSchema, 
   getWeatherForecastSchema,
@@ -42,21 +44,50 @@ server.addTool({
   name: "get-current-weather",
   description: "Get current weather conditions for a location",
   parameters: getCurrentWeatherSchema,
-  execute: async (args, { log }) => {
+  execute: async (args, { session, log }) => {
     try {
       log.info("Getting current weather", { location: args.location });
       
-      // TODO: Implement weather fetching logic
+      // Get OpenWeather client
+      const client = getOpenWeatherClient(session as any);
+      
+      // Configure client for this request
+      configureClientForLocation(client, args.location, args.units);
+      
+      // Fetch current weather
+      const weatherData = await client.getCurrent();
+      
+      log.info("Successfully retrieved current weather", { 
+        lat: weatherData.lat,
+        lon: weatherData.lon,
+        temp: weatherData.weather.temp.cur 
+      });
+      
+      // Format the response
+      const formattedWeather = formatCurrentWeather({
+        name: `${weatherData.lat.toFixed(4)}, ${weatherData.lon.toFixed(4)}`, // Use coordinates as name
+        main: {
+          temp: weatherData.weather.temp.cur,
+          feels_like: weatherData.weather.feelsLike.cur,
+          humidity: weatherData.weather.humidity
+        },
+        weather: [{
+          description: weatherData.weather.description
+        }],
+        wind: {
+          speed: weatherData.weather.wind.speed,
+          deg: weatherData.weather.wind.deg || 0
+        },
+        visibility: weatherData.weather.visibility,
+        dt: weatherData.dtRaw,
+        timezone: weatherData.timezoneOffset
+      }, args.units);
       
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify({ 
-              message: "Current weather tool not yet implemented",
-              location: args.location,
-              units: args.units 
-            }, null, 2)
+            text: formattedWeather
           }
         ]
       };
@@ -64,6 +95,17 @@ server.addTool({
       log.error("Failed to get current weather", { 
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
+      
+      // Provide helpful error messages
+      if (error instanceof Error) {
+        if (error.message.includes('city not found')) {
+          throw new Error(`Location "${args.location}" not found. Please check the spelling or try using coordinates.`);
+        }
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Invalid OpenWeatherMap API key. Please check your configuration.');
+        }
+      }
+      
       throw new Error(`Failed to get current weather: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -74,25 +116,66 @@ server.addTool({
   name: "get-weather-forecast",
   description: "Get weather forecast for up to 5 days",
   parameters: getWeatherForecastSchema,
-  execute: async (args, { log }) => {
+  execute: async (args, { session, log }) => {
     try {
       log.info("Getting weather forecast", { 
         location: args.location,
         days: args.days 
       });
       
-      // TODO: Implement forecast fetching logic
+      // Get OpenWeather client
+      const client = getOpenWeatherClient(session as any);
+      
+      // Configure client for this request
+      configureClientForLocation(client, args.location, args.units);
+      
+      // Fetch forecast data
+      const forecastData = await client.getForecast();
+      
+      // Limit to requested number of days (default 5)
+      const requestedDays = args.days || 5;
+      const limitedForecast = forecastData.slice(0, requestedDays * 8); // 8 entries per day (3-hour intervals)
+      
+      log.info("Successfully retrieved weather forecast", { 
+        location: args.location,
+        entries: limitedForecast.length
+      });
+      
+      // Group forecast by day and take daily summary
+      const dailyForecasts = [];
+      for (let i = 0; i < limitedForecast.length; i += 8) {
+        const dayData = limitedForecast[i]; // Take first entry of each day
+        if (dayData) {
+          dailyForecasts.push({
+            dt: dayData.dtRaw,
+            main: {
+              temp_min: dayData.weather.temp.min,
+              temp_max: dayData.weather.temp.max,
+              humidity: dayData.weather.humidity
+            },
+            weather: [{
+              description: dayData.weather.description
+            }],
+            wind: {
+              speed: dayData.weather.wind.speed,
+              deg: dayData.weather.wind.deg || 0
+            }
+          });
+        }
+      }
+      
+      // Format the response
+      const formattedForecast = formatWeatherForecast(
+        dailyForecasts, 
+        `${forecastData[0]?.lat.toFixed(4)}, ${forecastData[0]?.lon.toFixed(4)}`,
+        args.units
+      );
       
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify({ 
-              message: "Weather forecast tool not yet implemented",
-              location: args.location,
-              days: args.days,
-              units: args.units 
-            }, null, 2)
+            text: formattedForecast
           }
         ]
       };
@@ -100,6 +183,17 @@ server.addTool({
       log.error("Failed to get weather forecast", { 
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
+      
+      // Provide helpful error messages
+      if (error instanceof Error) {
+        if (error.message.includes('city not found')) {
+          throw new Error(`Location "${args.location}" not found. Please check the spelling or try using coordinates.`);
+        }
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Invalid OpenWeatherMap API key. Please check your configuration.');
+        }
+      }
+      
       throw new Error(`Failed to get weather forecast: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -238,13 +332,13 @@ Authentication happens automatically on server startup. No client-side authentic
 - **get-current-weather**: Get current weather conditions
   - Parameters: 
     - \`location\` (required): City name or coordinates
-    - \`units\` (optional): Temperature units (metric/imperial/kelvin)
+    - \`units\` (optional): Temperature units (metric/imperial/standard)
   - Returns: Current weather data
 
 - **get-weather-forecast**: Get weather forecast for up to 5 days
   - Parameters:
     - \`location\` (required): City name or coordinates
-    - \`units\` (optional): Temperature units
+    - \`units\` (optional): Temperature units (metric/imperial/standard)
     - \`days\` (optional): Number of days (1-5)
   - Returns: Hourly forecast data
 
@@ -252,7 +346,7 @@ Authentication happens automatically on server startup. No client-side authentic
   - Parameters:
     - \`latitude\` (required): Latitude coordinate
     - \`longitude\` (required): Longitude coordinate
-    - \`units\` (optional): Temperature units
+    - \`units\` (optional): Temperature units (metric/imperial/standard)
     - \`exclude\` (optional): Data to exclude
   - Returns: Complete weather data
 

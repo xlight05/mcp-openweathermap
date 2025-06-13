@@ -1,6 +1,8 @@
 import OpenWeatherAPI from "openweather-api-node";
 import type { SessionData } from "../auth/types.js";
 import { getStdioSession } from "../auth/stdio.js";
+import { parseLocation } from "./location-parser.js";
+import type { Units } from "../schemas.js";
 
 // Cache of OpenWeatherAPI clients by API key
 const clientCache = new Map<string, OpenWeatherAPI>();
@@ -35,6 +37,37 @@ export function getOpenWeatherClient(session: SessionData | null): OpenWeatherAP
     clientCache.set(apiKey, client);
   }
 
+  return client;
+}
+
+/**
+ * Configure client for a specific request
+ * @param client - OpenWeatherAPI client instance
+ * @param location - Location string to parse
+ * @param units - Temperature units
+ */
+export function configureClientForLocation(
+  client: OpenWeatherAPI, 
+  location: string, 
+  units?: Units
+): OpenWeatherAPI {
+  // Parse location
+  const parsed = parseLocation(location);
+  
+  // Set location based on type
+  if (parsed.type === 'coordinates' && parsed.latitude && parsed.longitude) {
+    client.setLocationByCoordinates(parsed.latitude, parsed.longitude);
+  } else if (parsed.type === 'city' && parsed.city) {
+    client.setLocationByName(parsed.city);
+  } else {
+    throw new Error("Invalid location format");
+  }
+  
+  // Set units if provided
+  if (units) {
+    client.setUnits(units);
+  }
+  
   return client;
 }
 

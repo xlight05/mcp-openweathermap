@@ -33,5 +33,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Cursor IDE
 .cursor
 
+# MCP configuration
+.mcp.json
+
 # Finder (MacOS) folder config
 .DS_Store

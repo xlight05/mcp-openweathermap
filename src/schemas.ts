@@ -5,8 +5,8 @@ import { z } from "zod";
  */
 
 // Temperature units schema
-export const unitsSchema = z.enum(["metric", "imperial", "kelvin"]).optional()
-  .describe("Temperature units: metric (Celsius), imperial (Fahrenheit), or kelvin");
+export const unitsSchema = z.enum(["metric", "imperial", "standard"]).optional()
+  .describe("Temperature units: metric (Celsius), imperial (Fahrenheit), or standard (Kelvin)");
 
 /**
  * Weather Operation Schemas
