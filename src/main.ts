@@ -5,6 +5,7 @@ import { httpStreamAuthenticator } from "./auth/http.js";
 import { initializeStdioAuth } from "./auth/stdio.js";
 import { getOpenWeatherClient, configureClientForLocation } from "./utils/client-resolver.js";
 import { formatCurrentWeather, formatWeatherForecast, formatHourlyForecast } from "./utils/weather-formatter.js";
+import type { SessionData } from "./auth/types.js";
 import { 
   getCurrentWeatherSchema, 
   getWeatherForecastSchema,
@@ -61,7 +62,7 @@ server.addTool({
       log.info("Getting current weather", { location: args.location });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient(session as any);
+      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
       
       // Configure client for this request
       configureClientForLocation(client, args.location, args.units);
@@ -136,7 +137,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient(session as any);
+      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
       
       // Configure client for this request
       configureClientForLocation(client, args.location, args.units);
@@ -224,7 +225,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient(session as any);
+      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
       
       // Configure client for this request
       configureClientForLocation(client, args.location, args.units);
@@ -287,7 +288,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient(session as any);
+      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
       
       // Configure client for this request
       configureClientForLocation(client, args.location, args.units);
@@ -389,7 +390,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient(session as any);
+      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
       
       // Configure client for this request
       configureClientForLocation(client, args.location);
@@ -457,7 +458,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient(session as any);
+      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
       
       // Configure client for this request
       configureClientForLocation(client, args.location);
@@ -526,7 +527,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient(session as any);
+      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
       
       // Configure client for this request
       configureClientForLocation(client, args.location);
@@ -637,7 +638,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient(session as any);
+      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
       
       // Set coordinates directly for reverse geocoding
       client.setLocationByCoordinates(args.latitude, args.longitude);
@@ -708,7 +709,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient(session as any);
+      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
       
       // Set coordinates for OneCall API
       client.setLocationByCoordinates(args.latitude, args.longitude);
@@ -878,7 +879,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient(session as any);
+      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
       
       // Set coordinates for air pollution API
       client.setLocationByCoordinates(args.latitude, args.longitude);
@@ -1005,7 +1006,7 @@ server.addTool({
       });
       
       // Get OpenWeather client
-      const client = getOpenWeatherClient(session as any);
+      const client = getOpenWeatherClient((session as SessionData | undefined) ?? null);
       
       // Set location by the query (could be city name, zip code, etc.)
       client.setLocationByName(args.query);
