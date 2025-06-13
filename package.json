@@ -15,7 +15,9 @@
     "typecheck": "bunx tsc --noEmit",
     "typecheck:watch": "bunx tsc --noEmit --watch",
     "build": "bunx tsc",
-    "inspect": "npx @modelcontextprotocol/inspector --config ./mcp-inspector.json --server openweathermap",
+    "inspect": "bunx @modelcontextprotocol/inspector --config ./mcp-inspector.json --server openweathermap",
+    "inspect:built": "bunx @modelcontextprotocol/inspector --config ./mcp-inspector.json --server openweathermap-built",
+    "inspect:http": "bunx @modelcontextprotocol/inspector --config ./mcp-inspector.json --server openweathermap-http",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "bun run build && changeset publish"

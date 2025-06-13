@@ -1,7 +1,7 @@
 
 /**
  * HTTP Stream authenticator for FastMCP
- * Validates the API key from the Authorization header
+ * Validates the OpenWeatherMap API key from the Authorization Bearer token
  */
 export async function httpStreamAuthenticator(
   request: any
@@ -13,26 +13,21 @@ export async function httpStreamAuthenticator(
   const authHeader = Array.isArray(authHeaderValue) ? authHeaderValue[0] : authHeaderValue;
 
   if (!authHeader) {
-    throw new Error("Authorization header required. Use Basic Auth with your OpenWeatherMap API key.");
+    throw new Error("Authorization header required. Use Bearer token with your OpenWeatherMap API key.");
   }
 
-  // Parse Basic Auth
-  const [authType, credentials] = authHeader.split(" ");
+  // Parse Bearer token
+  const [authType, apiKey] = authHeader.split(" ");
 
-  if (authType.toLowerCase() !== "basic") {
-    throw new Error("Only Basic authentication is supported");
+  if (authType.toLowerCase() !== "bearer") {
+    throw new Error("Only Bearer token authentication is supported");
   }
 
-  if (!credentials) {
+  if (!apiKey) {
     throw new Error("Invalid authorization header format");
   }
 
-  // Decode credentials
-  const decoded = Buffer.from(credentials, "base64").toString("utf-8");
-  const [username, apiKey] = decoded.split(":");
-
-  // For OpenWeatherMap, we only need the API key (can be passed as either username or password)
-  const openWeatherApiKey = apiKey || username;
+  const openWeatherApiKey = apiKey;
 
   if (!openWeatherApiKey) {
     throw new Error("OpenWeatherMap API key is required");

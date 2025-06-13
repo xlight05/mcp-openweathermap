@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "openweathermap": {
+      "command": "bun",
+      "args": ["--env-file=.env", "./src/main.ts"],
+      "env": {
+        "MCP_TRANSPORT": "stdio"
+      }
+    },
+    "openweathermap-built": {
+      "command": "node",
+      "args": ["./dist/main.js"],
+      "env": {
+        "MCP_TRANSPORT": "stdio"
+      }
+    },
+    "openweathermap-http": {
+      "command": "bun",
+      "args": ["--env-file=.env", "./src/main.ts"],
+      "env": {
+        "MCP_TRANSPORT": "httpStream",
+        "PORT": "3001",
+        "MCP_ENDPOINT": "/mcp"
+      }
+    }
+  }
+}
