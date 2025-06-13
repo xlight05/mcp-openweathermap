@@ -9,6 +9,11 @@ import {
   getCurrentWeatherSchema, 
   getWeatherForecastSchema,
   getHourlyForecastSchema,
+  getDailyForecastSchema,
+  getMinutelyForecastSchema,
+  getWeatherAlertsSchema,
+  getCurrentAirPollutionSchema,
+  getLocationInfoSchema,
   getOneCallWeatherSchema,
   getAirPollutionSchema,
   geocodeLocationSchema
@@ -258,6 +263,109 @@ server.addTool({
       }
       
       throw new Error(`Failed to get hourly weather forecast: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+});
+
+// Daily Forecast Tool
+server.addTool({
+  name: "get-daily-forecast",
+  description: "Get daily weather forecast for up to 8 days",
+  parameters: getDailyForecastSchema,
+  execute: async (args, { session, log }) => {
+    try {
+      log.info("Getting daily weather forecast", { 
+        location: args.location,
+        days: args.days,
+        include_today: args.include_today
+      });
+      
+      // Get OpenWeather client
+      const client = getOpenWeatherClient(session as any);
+      
+      // Configure client for this request
+      configureClientForLocation(client, args.location, args.units);
+      
+      // Fetch daily forecast data
+      const includeToday = args.include_today || false;
+      const requestedDays = args.days || 8;
+      const dailyData = await client.getDailyForecast(requestedDays, includeToday);
+      
+      log.info("Successfully retrieved daily weather forecast", { 
+        location: args.location,
+        days: dailyData.length,
+        include_today: includeToday
+      });
+      
+      // Format the response
+      const formattedForecast = JSON.stringify({
+        location: args.location,
+        units: args.units || 'metric',
+        days_requested: requestedDays,
+        includes_today: includeToday,
+        forecast: dailyData.map(day => ({
+          date: day.dt.toISOString().split('T')[0],
+          summary: day.weather.description,
+          temperature: {
+            min: day.weather.temp.min,
+            max: day.weather.temp.max,
+            morning: day.weather.temp.morn,
+            day: day.weather.temp.day,
+            evening: day.weather.temp.eve,
+            night: day.weather.temp.night
+          },
+          feels_like: {
+            morning: day.weather.feelsLike.morn,
+            day: day.weather.feelsLike.day,
+            evening: day.weather.feelsLike.eve,
+            night: day.weather.feelsLike.night
+          },
+          pressure: day.weather.pressure,
+          humidity: day.weather.humidity,
+          wind: {
+            speed: day.weather.wind.speed,
+            direction: day.weather.wind.deg,
+            gust: day.weather.wind.gust
+          },
+          clouds: day.weather.clouds,
+          precipitation: {
+            probability: day.weather.pop,
+            rain: day.weather.rain || 0,
+            snow: day.weather.snow || 0
+          },
+          uv_index: day.weather.uvi,
+          sunrise: day.astronomical.sunrise.toISOString(),
+          sunset: day.astronomical.sunset.toISOString(),
+          moonrise: day.astronomical.moonrise.toISOString(),
+          moonset: day.astronomical.moonset.toISOString(),
+          moon_phase: day.astronomical.moonPhase
+        }))
+      }, null, 2);
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: formattedForecast
+          }
+        ]
+      };
+    } catch (error) {
+      log.error("Failed to get daily weather forecast", { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      
+      // Provide helpful error messages
+      if (error instanceof Error) {
+        if (error.message.includes('city not found')) {
+          throw new Error(`Location "${args.location}" not found. Please check the spelling or try using coordinates.`);
+        }
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Invalid OpenWeatherMap API key. Please check your configuration.');
+        }
+      }
+      
+      throw new Error(`Failed to get daily weather forecast: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 });
