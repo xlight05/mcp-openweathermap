@@ -997,24 +997,56 @@ server.addTool({
   name: "geocode-location",
   description: "Convert location name to coordinates or vice versa",
   parameters: geocodeLocationSchema,
-  execute: async (args, { log }) => {
+  execute: async (args, { session, log }) => {
     try {
       log.info("Geocoding location", { 
         query: args.query,
         limit: args.limit 
       });
       
-      // TODO: Implement geocoding logic
+      // Get OpenWeather client
+      const client = getOpenWeatherClient(session as any);
+      
+      // Set location by the query (could be city name, zip code, etc.)
+      client.setLocationByName(args.query);
+      
+      // Get all matching locations up to the specified limit
+      const limit = args.limit || 5;
+      const locations = await client.getAllLocations(limit.toString());
+      
+      log.info("Successfully retrieved geocoding results", { 
+        query: args.query,
+        results_count: locations.length,
+        limit: limit
+      });
+      
+      // Format the response with all matching locations
+      const formattedData = {
+        query: args.query,
+        limit: limit,
+        results_count: locations.length,
+        locations: locations.map(location => ({
+          name: location.name,
+          local_names: location.local_names || {},
+          coordinates: {
+            latitude: location.lat,
+            longitude: location.lon
+          },
+          country: location.country,
+          state: location.state || null,
+          formatted_address: [
+            location.name,
+            location.state,
+            location.country
+          ].filter(Boolean).join(', ')
+        }))
+      };
       
       return {
         content: [
           {
             type: "text",
-            text: JSON.stringify({ 
-              message: "Geocoding tool not yet implemented",
-              query: args.query,
-              limit: args.limit
-            }, null, 2)
+            text: JSON.stringify(formattedData, null, 2)
           }
         ]
       };
@@ -1022,6 +1054,17 @@ server.addTool({
       log.error("Failed to geocode location", { 
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
+      
+      // Provide helpful error messages
+      if (error instanceof Error) {
+        if (error.message.includes('city not found')) {
+          throw new Error(`Location "${args.query}" not found. Please check the spelling or try a different location name.`);
+        }
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Invalid OpenWeatherMap API key. Please check your configuration.');
+        }
+      }
+      
       throw new Error(`Failed to geocode location: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
