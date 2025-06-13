@@ -164,3 +164,39 @@ export function formatWeatherForecast(forecasts: any[], location: string, units:
   
   return JSON.stringify(forecastData);
 }
+
+/**
+ * Format hourly forecast data as structured JSON for LLM consumption
+ */
+export function formatHourlyForecast(hourlyData: any[], location: string, units: Units = "metric"): string {
+  const forecastData = {
+    location,
+    hourly_forecast: hourlyData.map((hour, index) => ({
+      hour: index + 1,
+      datetime: formatDateTime(hour.dtRaw || hour.dt),
+      temperature: {
+        current: Math.round(hour.weather?.temp?.cur || hour.temp),
+        feels_like: Math.round(hour.weather?.feelsLike?.cur || hour.feels_like),
+        units: getTemperatureUnit(units)
+      },
+      conditions: hour.weather?.description || hour.description,
+      humidity: hour.weather?.humidity || hour.humidity,
+      wind: {
+        speed: Number((hour.weather?.wind?.speed || hour.wind_speed || 0).toFixed(1)),
+        direction: getWindDirection(hour.weather?.wind?.deg || hour.wind_deg || 0),
+        units: units === "imperial" ? "mph" : "m/s"
+      },
+      pressure: hour.weather?.pressure || hour.pressure,
+      visibility: (hour.weather?.visibility || hour.visibility) ? {
+        value: units === "imperial" ? Number(((hour.weather?.visibility || hour.visibility) / 1609.34).toFixed(1)) : Number(((hour.weather?.visibility || hour.visibility) / 1000).toFixed(1)),
+        units: units === "imperial" ? "mi" : "km"
+      } : null,
+      uvi: hour.weather?.uvi,
+      clouds: hour.weather?.clouds,
+      pop: hour.weather?.pop ? Math.round(hour.weather.pop * 100) : null,
+      timestamp: hour.dtRaw || hour.dt
+    }))
+  };
+  
+  return JSON.stringify(forecastData);
+}

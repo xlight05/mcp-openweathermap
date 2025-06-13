@@ -4,10 +4,11 @@ import { getTransportConfig } from "./config/transport.js";
 import { httpStreamAuthenticator } from "./auth/http.js";
 import { initializeStdioAuth } from "./auth/stdio.js";
 import { getOpenWeatherClient, configureClientForLocation } from "./utils/client-resolver.js";
-import { formatCurrentWeather, formatWeatherForecast } from "./utils/weather-formatter.js";
+import { formatCurrentWeather, formatWeatherForecast, formatHourlyForecast } from "./utils/weather-formatter.js";
 import { 
   getCurrentWeatherSchema, 
   getWeatherForecastSchema,
+  getHourlyForecastSchema,
   getOneCallWeatherSchema,
   getAirPollutionSchema,
   geocodeLocationSchema
@@ -199,6 +200,68 @@ server.addTool({
   }
 });
 
+// Hourly Weather Forecast Tool
+server.addTool({
+  name: "get-hourly-forecast",
+  description: "Get hourly weather forecast for up to 48 hours",
+  parameters: getHourlyForecastSchema,
+  execute: async (args, { session, log }) => {
+    try {
+      log.info("Getting hourly weather forecast", { 
+        location: args.location,
+        hours: args.hours 
+      });
+      
+      // Get OpenWeather client
+      const client = getOpenWeatherClient(session as any);
+      
+      // Configure client for this request
+      configureClientForLocation(client, args.location, args.units);
+      
+      // Fetch hourly forecast data
+      const requestedHours = args.hours || 48;
+      const hourlyData = await client.getHourlyForecast(requestedHours);
+      
+      log.info("Successfully retrieved hourly weather forecast", { 
+        location: args.location,
+        entries: hourlyData.length
+      });
+      
+      // Format the response
+      const formattedForecast = formatHourlyForecast(
+        hourlyData, 
+        `${hourlyData[0]?.lat?.toFixed(4)}, ${hourlyData[0]?.lon?.toFixed(4)}` || args.location,
+        args.units
+      );
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: formattedForecast
+          }
+        ]
+      };
+    } catch (error) {
+      log.error("Failed to get hourly weather forecast", { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      
+      // Provide helpful error messages
+      if (error instanceof Error) {
+        if (error.message.includes('city not found')) {
+          throw new Error(`Location "${args.location}" not found. Please check the spelling or try using coordinates.`);
+        }
+        if (error.message.includes('Invalid API key')) {
+          throw new Error('Invalid OpenWeatherMap API key. Please check your configuration.');
+        }
+      }
+      
+      throw new Error(`Failed to get hourly weather forecast: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+});
+
 // OneCall Weather Tool
 server.addTool({
   name: "get-onecall-weather",
@@ -340,6 +403,13 @@ Authentication happens automatically on server startup. No client-side authentic
     - \`location\` (required): City name or coordinates
     - \`units\` (optional): Temperature units (metric/imperial/standard)
     - \`days\` (optional): Number of days (1-5)
+  - Returns: Daily forecast data
+
+- **get-hourly-forecast**: Get hourly weather forecast for up to 48 hours
+  - Parameters:
+    - \`location\` (required): City name or coordinates
+    - \`units\` (optional): Temperature units (metric/imperial/standard)
+    - \`hours\` (optional): Number of hours (1-48)
   - Returns: Hourly forecast data
 
 - **get-onecall-weather**: Get comprehensive weather data
