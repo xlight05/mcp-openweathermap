@@ -58,3 +58,12 @@ Transport selection is automatic based on environment detection in `src/config/t
 - Session-based authentication prevents repeated API key validation
 - MCP Inspector configurations available for all transport modes
 - Comprehensive error handling with context-aware messages
+
+## Version Management
+
+**IMPORTANT**: Keep the FastMCP server version in sync with package.json version.
+
+When updating the version:
+1. Update `package.json` version (done automatically by changesets)
+2. Manually update the FastMCP server version in `src/main.ts` line 29 to match
+3. Both versions must be identical for consistency

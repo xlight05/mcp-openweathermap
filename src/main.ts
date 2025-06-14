@@ -26,7 +26,7 @@ const transportConfig = getTransportConfig();
 
 const server = new FastMCP({
   name: "OpenWeatherMap MCP Server",
-  version: "0.1.2",
+  version: "0.1.3",
   instructions: `
 This MCP server provides access to the OpenWeatherMap API for weather data and forecasts.
 
