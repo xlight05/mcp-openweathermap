@@ -1,5 +1,11 @@
 # mcp-openweathermap
 
+## 0.1.3
+
+### Patch Changes
+
+- Add CLAUDE.md development guidance, remove TODO.md, and fix stdio console.log compatibility issue
+
 ## 0.1.2
 
 ### Patch Changes
