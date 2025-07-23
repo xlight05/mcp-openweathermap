@@ -1,6 +1,8 @@
 # Use the official Bun image as the base image
 FROM oven/bun:1 AS base
 
+USER 10014
+
 # Set working directory
 WORKDIR /app
 
