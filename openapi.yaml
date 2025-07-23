@@ -1,0 +1,89 @@
+openapi: 3.0.1
+info:
+  title: Open weather MCP
+  version: 0.1.0
+  description: API for Claude and OpenAI chat completions
+servers:
+- url: "{server}:{port}"
+  variables:
+    server:
+      default: http://localhost
+    port:
+      default: "3000"
+paths:
+  /stream:
+    get:
+      summary: Stream endpoint - GET method
+      operationId: getStream
+      parameters:
+        - name: "*"
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Any query parameter
+      responses:
+        default:
+          description: Any response
+          content:
+            "*/*":
+              schema:
+                description: Any content type response
+    post:
+      summary: Stream endpoint - POST method
+      operationId: postStream
+      requestBody:
+        required: false
+        content:
+          "*/*":
+            schema:
+              description: Any content type request
+      responses:
+        default:
+          description: Any response
+          content:
+            "*/*":
+              schema:
+                description: Any content type response
+    put:
+      summary: Stream endpoint - PUT method
+      operationId: putStream
+      requestBody:
+        required: false
+        content:
+          "*/*":
+            schema:
+              description: Any content type request
+      responses:
+        default:
+          description: Any response
+          content:
+            "*/*":
+              schema:
+                description: Any content type response
+    patch:
+      summary: Stream endpoint - PATCH method
+      operationId: patchStream
+      requestBody:
+        required: false
+        content:
+          "*/*":
+            schema:
+              description: Any content type request
+      responses:
+        default:
+          description: Any response
+          content:
+            "*/*":
+              schema:
+                description: Any content type response
+    delete:
+      summary: Stream endpoint - DELETE method
+      operationId: deleteStream
+      responses:
+        default:
+          description: Any response
+          content:
+            "*/*":
+              schema:
+                description: Any content type response

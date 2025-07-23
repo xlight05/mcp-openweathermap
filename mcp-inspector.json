@@ -19,7 +19,7 @@
       "args": ["--env-file=.env", "./src/main.ts"],
       "env": {
         "MCP_TRANSPORT": "httpStream",
-        "PORT": "3001",
+        "PORT": "3000",
         "MCP_ENDPOINT": "/mcp"
       }
     }
