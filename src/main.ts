@@ -1171,7 +1171,7 @@ async function startServer() {
 
     console.log(`OpenWeatherMap MCP Server running on port ${transportConfig.httpStream!.port}`);
     console.log(`HTTP endpoint: ${transportConfig.httpStream!.endpoint}`);
-    console.log("Authentication: HTTP Bearer token with OpenWeatherMap API key");
+    console.log("Authentication: OPENWEATHER_API_KEY environment variable");
   } else {
     await server.start({
       transportType: "stdio"

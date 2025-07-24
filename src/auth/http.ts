@@ -1,41 +1,25 @@
 
 /**
  * HTTP Stream authenticator for FastMCP
- * Validates the OpenWeatherMap API key from the Authorization Bearer token
+ * Uses the OpenWeatherMap API key from environment variables
+ * Makes HTTP calls unauthenticated by reading from OPENWEATHER_API_KEY env var
  */
 export async function httpStreamAuthenticator(
-  request: any
+  _request: any
 ): Promise<Record<string, any>> {
-  const headers = request.headers as Record<string, string | string[] | undefined>;
-
-  // Get authorization header
-  const authHeaderValue = headers.authorization || headers.Authorization;
-  const authHeader = Array.isArray(authHeaderValue) ? authHeaderValue[0] : authHeaderValue;
-
-  if (!authHeader) {
-    throw new Error("Authorization header required. Use Bearer token with your OpenWeatherMap API key.");
-  }
-
-  // Parse Bearer token
-  const [authType, apiKey] = authHeader.split(" ");
-
-  if (authType.toLowerCase() !== "bearer") {
-    throw new Error("Only Bearer token authentication is supported");
-  }
-
-  if (!apiKey) {
-    throw new Error("Invalid authorization header format");
-  }
-
-  const openWeatherApiKey = apiKey;
+  // Get API key from environment variable (same as stdio)
+  const openWeatherApiKey = process.env.OPENWEATHER_API_KEY;
 
   if (!openWeatherApiKey) {
-    throw new Error("OpenWeatherMap API key is required");
+    throw new Error(
+      "OPENWEATHER_API_KEY environment variable is required for HTTP stream transport. " +
+      "Please set it before starting the server."
+    );
   }
 
   // Validate API key format (basic validation)
   if (openWeatherApiKey.length < 32) {
-    throw new Error("Invalid OpenWeatherMap API key format");
+    throw new Error("Invalid OPENWEATHER_API_KEY format. Please check your API key.");
   }
 
   // Return session data
